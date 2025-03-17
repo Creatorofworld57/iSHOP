@@ -4,20 +4,21 @@ package org.local.meeting.Utils.JwtUtils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
+
 
 import org.springframework.beans.factory.annotation.Value;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-@RequiredArgsConstructor
+
 @Component
 public class JwtTokenUtil {
 
@@ -32,18 +33,21 @@ public class JwtTokenUtil {
 
     private SecretKey secretKey;
 
-    private final EncryptionOfId encryptionOfId;
 
     @PostConstruct
     private void init() {
-        this.secretKey = Keys.hmacShaKeyFor(secret.getBytes());
+        try {
+            this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        } catch (Exception e) {
+            throw new IllegalStateException("Ошибка инициализации JWT ключа", e);
+        }
     }
 
     public String generateToken(String username) throws Exception {
         Map<String, Object> claims = new HashMap<>();
 
 
-        claims.put("id",encryptionOfId.encrypt(username));
+        claims.put("id",username);
 
         return builderForToken(claims, jwtLifeTime);
 
@@ -51,7 +55,7 @@ public class JwtTokenUtil {
     public String builderForToken(Map<String, Object> claims, Duration time) throws Exception {
         return Jwts.builder()
                 .claims(claims)
-                .subject(encryptionOfId.encrypt((String) claims.get("id")))// Добавляем дополнительные данные в токен.
+                .subject(((String) claims.get("id")))// Добавляем дополнительные данные в токен.
                 // Указываем subject (имя пользователя).
                 .claims().issuedAt(new Date(System.currentTimeMillis())) // Устанавливаем дату создания токена.
                 .expiration(new Date(System.currentTimeMillis() + time.toMillis())) // Устанавливаем время истечения токена.
@@ -60,7 +64,7 @@ public class JwtTokenUtil {
                 .compact(); // Преобразуем в строковый формат.
     }
     public String generateRefreshToken(String username) throws Exception {
-        return builderForToken(Map.of("id",encryptionOfId.encrypt(username)), jwtRefreshTokenLifeTime);
+        return builderForToken(Map.of("id",username), jwtRefreshTokenLifeTime);
     }
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
@@ -82,7 +86,7 @@ public class JwtTokenUtil {
     public boolean validateToken(String token, String username) throws Exception {
         final String userName = extractUserName(token);
 
-        return (userName.equals(encryptionOfId.encrypt(username)) && !isTokenExpired(token));
+        return (userName.equals(username) && !isTokenExpired(token));
     }
     public String extractUserName(String token) {
 

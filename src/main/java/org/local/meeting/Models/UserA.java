@@ -12,7 +12,7 @@ public class UserA {
     Long id;
     String name;
     String email;
-    @Column(columnDefinition = "geo(Point,4326)")
-    private Point location;
+   // @Column(columnDefinition = "geometry(Point,4326)")
+    //private Point location;
     String password;
 }
