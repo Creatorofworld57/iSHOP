@@ -1,5 +1,6 @@
-package org.local.meeting.Models;
+package org.local.meeting.Models.Dto;
 
+import org.local.meeting.Models.Dao.UserA;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -24,7 +25,7 @@ public class UserPrincipal implements UserDetails {
 
     @Override
     public String getUsername() {
-        return user.getName();
+        return user.getLogin();
     }
 
     @Override

@@ -2,17 +2,20 @@ package org.local.meeting.Configs;
 
 import lombok.RequiredArgsConstructor;
 import org.local.meeting.Utils.JwtUtils.JwtFilter;
+import org.local.meeting.Utils.JwtUtils.MyUserDetailsService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -27,6 +30,7 @@ public class SecurityConfig {
     private final JwtFilter jwtAuthenticationFilter;
     @Value("${urlFront}")
     private String url;
+    private final MyUserDetailsService myUserDetailsService;
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
@@ -44,7 +48,11 @@ public class SecurityConfig {
                                 "/auth",
                                 "/auth/validate_auth",
                                 "/auth/login",
-                                "/auth/sign_up"
+                                "/auth/sign_up",
+                                "/auth/sign_in",
+                                "/auth/pre_sign_in",
+                                "/auth/check_code"
+
                         ).permitAll()
                         // Разрешаем доступ к Swagger и публичным API
                 )
@@ -79,4 +87,12 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(myUserDetailsService);
+       // provider.setPasswordEncoder(PasswordEncoderFactories.createDelegatingPasswordEncoder());
+        return provider;
+    }
+
 }

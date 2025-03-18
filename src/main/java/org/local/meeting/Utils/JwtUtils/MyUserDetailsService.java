@@ -6,8 +6,8 @@ package org.local.meeting.Utils.JwtUtils;
 
 import lombok.RequiredArgsConstructor;
 
-import org.local.meeting.Models.UserA;
-import org.local.meeting.Models.UserPrincipal;
+import org.local.meeting.Models.Dao.UserA;
+import org.local.meeting.Models.Dto.UserPrincipal;
 import org.local.meeting.Repositories.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -29,7 +29,7 @@ public class MyUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        UserA user = userRepository.findByName(username);
+        UserA user = userRepository.findByLogin(username);
         if (user == null) {
             System.out.println("User Not Found");
             throw new UsernameNotFoundException("user not found");

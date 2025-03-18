@@ -1,4 +1,4 @@
-package org.local.meeting.Models;
+package org.local.meeting.Models.Dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

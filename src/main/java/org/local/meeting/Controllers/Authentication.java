@@ -2,12 +2,13 @@ package org.local.meeting.Controllers;
 
 import lombok.RequiredArgsConstructor;
 
-import org.local.meeting.Models.AuthRequest;
-import org.local.meeting.Models.AuthTokens;
-import org.local.meeting.Models.PreRegRequest;
-import org.local.meeting.Models.RegRequest;
+import org.local.meeting.Models.Dao.UserA;
+import org.local.meeting.Models.Dto.*;
+import org.local.meeting.Repositories.UserRepository;
 import org.local.meeting.Services.AuthAndRegistrService;
+import org.local.meeting.Services.PassCodeService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,6 +17,9 @@ import org.springframework.web.bind.annotation.*;
 public class Authentication {
 
     private final AuthAndRegistrService authAndRegistrService;
+    private final PassCodeService passCodeService;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @GetMapping("/update_access_token")
     public ResponseEntity<?> refreshAuth(@RequestBody AuthTokens authTokens) {
@@ -23,9 +27,16 @@ public class Authentication {
         return ResponseEntity.ok(updateTokens);
     }
 
-    @GetMapping("/sign_in")
-    public ResponseEntity<?> auth_and_authorize(AuthRequest authRequest) {
-        return ResponseEntity.ok(authAndRegistrService.entry(authRequest));
+    @PostMapping("/sign_in")
+    public ResponseEntity<?> auth_and_authorize(@RequestBody AuthRequest authRequest)  {
+        UserA user = userRepository.findByLogin(authRequest.getLogin());
+        if(passwordEncoder.matches(authRequest.getPassword(), user.getPassword().substring(6))) {
+            return authAndRegistrService.sendVerificationCode(user.getEmail())
+                    ? ResponseEntity.ok("code has been sent") :
+                    ResponseEntity.badRequest().build();
+        }
+       else
+           return ResponseEntity.status(401).body("Invalid login or password");
     }
 
     @GetMapping("/sign_up")
@@ -34,10 +45,21 @@ public class Authentication {
         return authTokens != null ? ResponseEntity.ok().body(authTokens) : ResponseEntity.badRequest().build();
     }
 
-    @PostMapping("pre_sign_up")
+    @PostMapping("/pre_sign_up")
     public ResponseEntity<?> pre_sign_up(@RequestBody PreRegRequest preRegRequest) {
-        return authAndRegistrService.sendVerificationCode(preRegRequest)
+        return authAndRegistrService.sendVerificationCode(preRegRequest.getEmail())
                 ? ResponseEntity.ok("code has been sent") :
                 ResponseEntity.badRequest().build();
     }
+
+    @GetMapping("/check_code")
+    public ResponseEntity<?> after_true_code(@RequestBody PassCode passCode) throws Exception {
+        if (passCodeService.verify_code(passCode.getCode(), passCode.getEmail()))
+            return ResponseEntity.ok().body(
+                    authAndRegistrService.entry(
+                            userRepository.findByEmail(passCode.getEmail())));
+        else
+            return ResponseEntity.badRequest().body("Pass code is wrong");
+    }
+    // сделать endpoint для обновления refresh токена
 }

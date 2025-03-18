@@ -1,16 +1,16 @@
-package org.local.meeting.Models;
+package org.local.meeting.Models.Dao;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import org.springframework.data.geo.Point;
 
 @Entity
 @Data
+@Table(name = "Users")
 public class UserA {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
-    String name;
+    String login;
     String email;
    // @Column(columnDefinition = "geometry(Point,4326)")
     //private Point location;
