@@ -6,11 +6,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.local.meeting.Exeptions.AuthException;
 import org.local.meeting.Models.Dto.AuthRequest;
 
+import org.local.meeting.Repositories.UserRepository;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,18 +24,23 @@ public class UserVerifyService {
 
     private final AuthenticationManager authenticationManager;
     private final JwtTokenUtil jwtTokenUtil;
-
+    private final MyUserDetailsService myUserDetailsService;
 
     public String authenticateAndGetToken(AuthRequest request) {
         try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            request.getLogin(),
-                            null,
-                            List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))
-                    )
+            UserDetails userDetails = myUserDetailsService.loadUserByUsername(request.getLogin());
+
+            Authentication authentication = new UsernamePasswordAuthenticationToken(
+                    userDetails,
+                    null,
+                    userDetails.getAuthorities()
             );
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+// Устанавливаем аутентификацию в SecurityContext
+           // SecurityContextHolder.getContext().setAuthentication(authentication);
+
+
+
 
             if (!authentication.isAuthenticated()) {
                 log.warn("Authentication failed for user: {}", request.getLogin());

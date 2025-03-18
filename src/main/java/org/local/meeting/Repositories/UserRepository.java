@@ -6,8 +6,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.Optional;
+
 public interface UserRepository extends JpaRepository<UserA,Long> {
-    UserA findByLogin(String username);
+
+
+    Optional<UserA> findByLogin(String username);
 
     @Query("SELECT NEW org.local.meeting.Models.Dto.AuthRequest(u.login, u.password) FROM UserA u WHERE u.email = :email")
     AuthRequest findByEmail(String email);

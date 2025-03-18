@@ -28,15 +28,11 @@ public class Authentication {
     }
 
     @PostMapping("/sign_in")
-    public ResponseEntity<?> auth_and_authorize(@RequestBody AuthRequest authRequest)  {
-        UserA user = userRepository.findByLogin(authRequest.getLogin());
-        if(passwordEncoder.matches(authRequest.getPassword(), user.getPassword().substring(6))) {
-            return authAndRegistrService.sendVerificationCode(user.getEmail())
-                    ? ResponseEntity.ok("code has been sent") :
-                    ResponseEntity.badRequest().build();
-        }
-       else
-           return ResponseEntity.status(401).body("Invalid login or password");
+    public ResponseEntity<?> auth_and_authorize(@RequestBody AuthRequest authRequest) {
+        if (authAndRegistrService.verifyPassLog(authRequest)) {
+            return ResponseEntity.ok("code has been sent");
+        } else
+            return ResponseEntity.status(401).body("Invalid login or password");
     }
 
     @GetMapping("/sign_up")

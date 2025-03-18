@@ -11,6 +11,4 @@ public class KafkaConfig {
     public NewTopic createTopic() {
         return new NewTopic("top_for_pass_codes", 1, (short) 1);
     }
-
-
 }
